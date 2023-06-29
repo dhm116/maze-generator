@@ -28,10 +28,59 @@ func (p *Point) ToArray() [2]int {
 	return [2]int{p.X, p.Y}
 }
 
-// 0 [0,0] 1 [1,0] 2 [2,0] 3 [3,0] 4 [4,0]
-// 5 [0,1] 6 [1,1] 7 [2,1] 8 [3,1] 9 [4,1]
+func (p *Point) String() string {
+	return fmt.Sprintf("%d,%d", p.X, p.Y)
+}
+
+func (m *Maze) InitializeCells() {
+	// Create the Cells
+	for i := range m.Cells {
+		x := int(math.Mod(float64(i), float64(m.Size)))
+		y := i / m.Size
+
+		m.Cells[i] = &Cell{
+			Location:  &Point{X: x, Y: y},
+			maze:      m,
+			Neighbors: make([]*Cell, 0),
+			Type:      Wall,
+		}
+	}
+
+	// Populate each Cell's neighbors
+	for i := range m.Cells {
+		cell := m.Cells[i]
+		x := cell.Location.X
+		y := cell.Location.Y
+
+		if x > 0 {
+			cell.AddNeighbor(m.CellAt(x-1, y))
+		}
+		if x < m.Size-1 {
+			cell.AddNeighbor(m.CellAt(x+1, y))
+		}
+		if y > 0 {
+			cell.AddNeighbor(m.CellAt(x, y-1))
+		}
+		if y < m.Size-1 {
+			cell.AddNeighbor(m.CellAt(x, y+1))
+		}
+	}
+
+}
+
 func (m *Maze) CellAt(x, y int) *Cell {
 	return m.Cells[x+(y*m.Size)]
+}
+
+func (m *Maze) OpenCells() []*Cell {
+	var results []*Cell
+	results = make([]*Cell, 0)
+	for i := range m.Cells {
+		if m.Cells[i].Type != Wall {
+			results = append(results, m.Cells[i])
+		}
+	}
+	return results
 }
 
 func (m *Maze) ToString() string {
@@ -57,6 +106,14 @@ func (c *Cell) IsBorder() bool {
 	return c.Location.X == 0 || c.Location.Y == 0 || c.Location.X == limit || c.Location.Y == limit
 }
 
+func (c *Cell) IsStart() bool {
+	return c.Type == Start
+}
+
+func (c *Cell) IsEnd() bool {
+	return c.Type == End
+}
+
 func (c *Cell) AddNeighbor(n *Cell) {
 	c.Neighbors = append(c.Neighbors, n)
 }
@@ -69,6 +126,17 @@ func (c *Cell) CanMoveTo() []*Cell {
 		}
 	}
 	return available
+}
+
+func (c *Cell) AdjacentSpaces() []*Cell {
+	var results []*Cell
+	results = make([]*Cell, 0)
+	for i := range c.Neighbors {
+		if c.Neighbors[i].Type == Space {
+			results = append(results, c.Neighbors[i])
+		}
+	}
+	return results
 }
 
 func (c *Cell) AdjacentSpacesCount() int {
@@ -85,5 +153,5 @@ func (c *Cell) DistanceFrom(other *Cell) int {
 	diffX := math.Abs(float64(c.Location.X - other.Location.X))
 	diffY := math.Abs(float64(c.Location.Y - other.Location.Y))
 
-	return int(math.Sqrt(math.Pow(diffX, 2) + math.Pow(diffY, 2)))
+	return int(diffX + diffY)
 }

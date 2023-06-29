@@ -1,7 +1,6 @@
 package generator
 
 import (
-	"math"
 	"math/rand"
 )
 
@@ -25,19 +24,7 @@ func NewMaze(size int) *Maze {
 		Cells: make([]*Cell, size*size),
 	}
 
-	for i := range maze.Cells {
-		x := int(math.Mod(float64(i), float64(size)))
-		y := i / size
-
-		maze.Cells[i] = &Cell{
-			Location:  &Point{X: x, Y: y},
-			maze:      maze,
-			Neighbors: make([]*Cell, 0),
-			Type:      Wall,
-		}
-	}
-
-	initializeNeighbors(maze)
+	maze.InitializeCells()
 
 	initializeMaze(maze)
 
@@ -45,27 +32,6 @@ func NewMaze(size int) *Maze {
 	pickEndingPosition(maze)
 
 	return maze
-}
-
-func initializeNeighbors(m *Maze) {
-	for i := range m.Cells {
-		cell := m.Cells[i]
-		x := cell.Location.X
-		y := cell.Location.Y
-
-		if x > 0 {
-			cell.AddNeighbor(m.CellAt(x-1, y))
-		}
-		if x < m.Size-1 {
-			cell.AddNeighbor(m.CellAt(x+1, y))
-		}
-		if y > 0 {
-			cell.AddNeighbor(m.CellAt(x, y-1))
-		}
-		if y < m.Size-1 {
-			cell.AddNeighbor(m.CellAt(x, y+1))
-		}
-	}
 }
 
 func initializeMaze(m *Maze) {
