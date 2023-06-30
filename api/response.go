@@ -18,7 +18,8 @@ type MazeResponse struct {
 
 func NewMazeResponseFromMaze(c *gin.Context, g *generator.Generator) *MazeResponse {
 	maze := g.Maze()
-	seedPath := strings.Replace(c.FullPath(), "random", fmt.Sprint(g.Seed()), 1)
+	encodedSeed := generator.EncodeMapSeed(g.Seed(), maze.Size)
+	seedPath := strings.Replace(c.FullPath(), "random", encodedSeed, 1)
 	res := &MazeResponse{
 		Name:             fmt.Sprintf("%dx%d", maze.Size, maze.Size),
 		Path:             seedPath,

@@ -1,15 +1,11 @@
 package commands
 
 import (
-	"fmt"
 	"net"
-	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 
 	"github.com/dhm116/maze-generator/api"
-	"github.com/dhm116/maze-generator/generator"
 )
 
 var apiCmd = &cobra.Command{
@@ -28,35 +24,5 @@ func runAPI(cmd *cobra.Command, args []string) {
 	host, _ := cmd.Flags().GetIP("host")
 	port, _ := cmd.Flags().GetInt("port")
 
-	route := gin.Default()
-
-	route.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
-	})
-
-	route.GET("/mazebot/random", mazeRequest)
-
-	route.Run(fmt.Sprintf("%v:%v", host, port))
-}
-
-func mazeRequest(c *gin.Context) {
-	var req api.MazeRequest
-
-	err := c.ShouldBind(&req)
-
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "Request validation failed!",
-			"error":   err.Error(),
-		})
-		return
-	}
-
-	gen := generator.NewMaze(req.MaxSize)
-
-	res := api.NewMazeResponseFromMaze(c, gen)
-
-	c.JSON(http.StatusOK, res)
+	api.RunServer(host.String(), port)
 }
