@@ -155,3 +155,24 @@ func (c *Cell) DistanceFrom(other *Cell) int {
 
 	return int(diffX + diffY)
 }
+
+func (c *Cell) DirectionTo(other *Cell) Direction {
+	var dir Direction
+	diffX := c.Location.X - other.Location.X
+	diffY := c.Location.Y - other.Location.Y
+	switch {
+	case diffX < 0:
+		dir = Right
+	case diffX > 0:
+		dir = Left
+	case diffY < 0:
+		dir = Down
+	case diffY > 0:
+		dir = Up
+	}
+	return dir
+}
+
+func (c *Cell) String() string {
+	return fmt.Sprintf("[%s] '%s'", c.Location.String(), c.Type)
+}

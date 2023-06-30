@@ -38,7 +38,10 @@ func solveMaze(cmd *cobra.Command, args []string) {
 	maze := generator.NewMaze(size)
 	duration := time.Since(start)
 	fmt.Printf("Took %s\n", duration.String())
+	fmt.Println("Maze Start:", maze.Start.Location.String())
+	fmt.Println("Maze End:", maze.End.Location.String())
 
 	d := solver.NewDijkstra(maze)
 	fmt.Print(d.ToString())
+	fmt.Println("Solution:", d.Solution().String())
 }

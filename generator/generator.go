@@ -4,8 +4,10 @@ import (
 	"math/rand"
 )
 
+type Direction int
+
 const (
-	Up = 1 << iota
+	Up = Direction(1 << iota)
 	Down
 	Left
 	Right
@@ -17,6 +19,36 @@ const (
 	Start = "A"
 	End   = "B"
 )
+
+func (d Direction) String() string {
+	var result string
+	switch d {
+	case Up:
+		result = "N"
+	case Down:
+		result = "S"
+	case Left:
+		result = "W"
+	case Right:
+		result = "E"
+	}
+	return result
+}
+
+func (d Direction) Arrow() string {
+	var result string
+	switch d {
+	case Up:
+		result = "↑"
+	case Down:
+		result = "↓"
+	case Left:
+		result = "←"
+	case Right:
+		result = "→"
+	}
+	return result
+}
 
 func NewMaze(size int) *Maze {
 	maze := &Maze{
