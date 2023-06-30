@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/dhm116/maze-generator/generator"
 	"github.com/gin-gonic/gin"
@@ -15,20 +16,22 @@ type MazeResponse struct {
 	Map              [][]string `json:"map"`
 }
 
-func NewMazeResponseFromMaze(c *gin.Context, m *generator.Maze) *MazeResponse {
+func NewMazeResponseFromMaze(c *gin.Context, g *generator.Generator) *MazeResponse {
+	maze := g.Maze()
+	seedPath := strings.Replace(c.FullPath(), "random", fmt.Sprint(g.Seed()), 1)
 	res := &MazeResponse{
-		Name:             fmt.Sprintf("%dx%d", m.Size, m.Size),
-		Path:             c.FullPath(),
-		StartingPosition: m.Start.Location.ToArray(),
-		EndingPosition:   m.End.Location.ToArray(),
-		Map:              make([][]string, m.Size),
+		Name:             fmt.Sprintf("%dx%d", maze.Size, maze.Size),
+		Path:             seedPath,
+		StartingPosition: maze.Start.Location.ToArray(),
+		EndingPosition:   maze.End.Location.ToArray(),
+		Map:              make([][]string, maze.Size),
 	}
 
 	for x := range res.Map {
-		res.Map[x] = make([]string, m.Size)
+		res.Map[x] = make([]string, maze.Size)
 
 		for y := range res.Map[x] {
-			cell := m.CellAt(x, y)
+			cell := maze.CellAt(x, y)
 			cellType := cell.Type
 
 			res.Map[x][y] = cellType

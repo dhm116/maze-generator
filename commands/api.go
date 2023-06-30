@@ -54,9 +54,9 @@ func mazeRequest(c *gin.Context) {
 		return
 	}
 
-	maze := generator.NewMaze(req.MaxSize)
+	gen := generator.NewMaze(req.MaxSize)
 
-	res := api.NewMazeResponseFromMaze(c, maze)
+	res := api.NewMazeResponseFromMaze(c, gen)
 
 	c.JSON(http.StatusOK, res)
 }

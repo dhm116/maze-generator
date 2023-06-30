@@ -2,6 +2,7 @@ package generator
 
 import (
 	"math/rand"
+	"time"
 )
 
 type Direction int
@@ -50,7 +51,17 @@ func (d Direction) Arrow() string {
 	return result
 }
 
-func NewMaze(size int) *Maze {
+type Generator struct {
+	maze *Maze
+	rand rand.Rand
+	seed int64
+}
+
+func NewMaze(size int) *Generator {
+	return FromSeed(size, time.Now().UnixNano())
+}
+
+func FromSeed(size int, seed int64) *Generator {
 	maze := &Maze{
 		Size:  size,
 		Cells: make([]*Cell, size*size),
@@ -58,15 +69,29 @@ func NewMaze(size int) *Maze {
 
 	maze.InitializeCells()
 
-	initializeMaze(maze)
+	gen := &Generator{
+		maze: maze,
+		rand: *rand.New(rand.NewSource(seed)),
+		seed: seed,
+	}
 
-	pickStartingPosition(maze)
-	pickEndingPosition(maze)
+	gen.initializeMaze()
 
-	return maze
+	gen.setStartingPosition()
+	gen.setEndingPosition()
+
+	return gen
 }
 
-func initializeMaze(m *Maze) {
+func (g *Generator) Maze() *Maze {
+	return g.maze
+}
+
+func (g *Generator) Seed() int64 {
+	return g.seed
+}
+
+func (g *Generator) initializeMaze() {
 	// 1. Start with a grid full of walls.
 	// 2. Pick a cell, mark it as part of the maze. Add the walls of the cell to the wall list.
 	// 3. While there are walls in the list:
@@ -77,64 +102,61 @@ func initializeMaze(m *Maze) {
 	var cell *Cell
 	var index int
 	walls := make([]*Cell, 0)
-	cell = randomCell(m)
+	cell = g.randomCell()
 	cell.Type = Space
 
 	walls = append(walls, cell.CanMoveTo()...)
 
 	for len(walls) > 0 {
-		// fmt.Printf("At [%d,%d] with %d walls\n", cell.Location.X, cell.Location.Y, len(walls))
-		cell, index = pickDirection(walls)
-		// fmt.Printf("\tPicked [%d,%d]\n", cell.Location.X, cell.Location.Y)
+		cell, index = g.pickDirection(walls)
+		// Avoid creating wide spaces
 		if cell.AdjacentSpacesCount() <= 1 {
-			// fmt.Printf("\tSwitching [%d,%d] to a space\n", cell.Location.X, cell.Location.Y)
+			// Turn the cell into a moveable space
 			cell.Type = Space
 			moves := cell.CanMoveTo()
 			walls = append(walls, moves...)
-			// fmt.Printf("\tAdded available walls - now %d walls\n", len(walls))
-			// fmt.Print(m.ToString())
 		}
+		// Remove the wall from the list
 		walls = append(walls[:index], walls[index+1:]...)
-		// fmt.Printf("\tRemoved wall from list - now %d walls\n", len(walls))
 	}
 }
 
-func randomCell(m *Maze) *Cell {
-	cell := m.Cells[rand.Intn(len(m.Cells))]
+func (g *Generator) randomCell() *Cell {
+	cell := g.maze.Cells[g.rand.Intn(len(g.maze.Cells))]
 	if cell.IsBorder() {
-		return randomCell(m)
+		return g.randomCell()
 	}
 	return cell
 }
 
-func pickDirection(choices []*Cell) (*Cell, int) {
-	index := rand.Intn(len(choices))
+func (g *Generator) pickDirection(choices []*Cell) (*Cell, int) {
+	index := g.rand.Intn(len(choices))
 	return choices[index], index
 }
 
-func pickStartingPosition(m *Maze) {
+func (g *Generator) setStartingPosition() {
 	var cell *Cell
-	cell = randomCell(m)
+	cell = g.randomCell()
 	for cell.Type != Space {
-		cell = randomCell(m)
+		cell = g.randomCell()
 	}
 	cell.Type = Start
-	m.Start = cell
+	g.maze.Start = cell
 }
 
-func pickEndingPosition(m *Maze) {
+func (g *Generator) setEndingPosition() {
 	var cell *Cell
 	var distance int
-	start := m.Start
-	bound := m.Size / 4
+	start := g.maze.Start
+	bound := g.maze.Size / 4
 
-	cell = randomCell(m)
+	cell = g.randomCell()
 	distance = start.DistanceFrom(cell)
 
 	for cell.Type != Space && distance < bound {
-		cell = randomCell(m)
+		cell = g.randomCell()
 		distance = start.DistanceFrom(cell)
 	}
 	cell.Type = End
-	m.End = cell
+	g.maze.End = cell
 }

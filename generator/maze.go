@@ -19,6 +19,7 @@ type Cell struct {
 
 type Maze struct {
 	Cells []*Cell
+	seed  int64
 	Size  int
 	Start *Cell
 	End   *Cell
@@ -65,7 +66,6 @@ func (m *Maze) InitializeCells() {
 			cell.AddNeighbor(m.CellAt(x, y+1))
 		}
 	}
-
 }
 
 func (m *Maze) CellAt(x, y int) *Cell {
