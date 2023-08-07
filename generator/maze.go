@@ -19,7 +19,6 @@ type Cell struct {
 
 type Maze struct {
 	Cells []*Cell
-	seed  int64
 	Size  int
 	Start *Cell
 	End   *Cell
@@ -72,12 +71,27 @@ func (m *Maze) CellAt(x, y int) *Cell {
 	return m.Cells[x+(y*m.Size)]
 }
 
+func (m *Maze) PlayableCells() []*Cell {
+	var results []*Cell
+	size := (m.Size - 2) * (m.Size - 2)
+	results = make([]*Cell, 0, size)
+	// Iterate over the "rows"
+	for i := 1; i < m.Size-1; i++ {
+		rowOffset := m.Size * i
+		sliceFrom := rowOffset + 1        // Skips the "left" border cell
+		sliceTo := sliceFrom + m.Size - 2 // Skip the "right" border cell
+		results = append(results, m.Cells[sliceFrom:sliceTo]...)
+	}
+	return results
+}
+
 func (m *Maze) OpenCells() []*Cell {
 	var results []*Cell
 	results = make([]*Cell, 0)
-	for i := range m.Cells {
-		if m.Cells[i].Type != Wall {
-			results = append(results, m.Cells[i])
+	cells := m.PlayableCells()
+	for i := range cells {
+		if cells[i].Type != Wall {
+			results = append(results, cells[i])
 		}
 	}
 	return results

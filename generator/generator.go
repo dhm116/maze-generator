@@ -122,11 +122,18 @@ func (g *Generator) initializeMaze() {
 }
 
 func (g *Generator) randomCell() *Cell {
-	cell := g.maze.Cells[g.rand.Intn(len(g.maze.Cells))]
-	if cell.IsBorder() {
-		return g.randomCell()
-	}
-	return cell
+	// cell := g.maze.Cells[g.rand.Intn(len(g.maze.Cells))]
+	// if cell.IsBorder() {
+	// 	return g.randomCell()
+	// }
+	// return cell
+	playable := g.maze.PlayableCells()
+	return playable[g.rand.Intn(len(playable))]
+}
+
+func (g *Generator) randomSpaceCell() *Cell {
+	spaces := g.maze.OpenCells()
+	return spaces[g.rand.Intn(len(spaces))]
 }
 
 func (g *Generator) pickDirection(choices []*Cell) (*Cell, int) {
@@ -135,11 +142,7 @@ func (g *Generator) pickDirection(choices []*Cell) (*Cell, int) {
 }
 
 func (g *Generator) setStartingPosition() {
-	var cell *Cell
-	cell = g.randomCell()
-	for cell.Type != Space {
-		cell = g.randomCell()
-	}
+	cell := g.randomSpaceCell()
 	cell.Type = Start
 	g.maze.Start = cell
 }
@@ -150,13 +153,19 @@ func (g *Generator) setEndingPosition() {
 	start := g.maze.Start
 	bound := g.maze.Size / 4
 
-	cell = g.randomCell()
+	cell = g.randomSpaceCell()
 	distance = start.DistanceFrom(cell)
 
-	for cell.Type != Space && distance < bound {
+	// fmt.Printf("%s distance is %d, bound is %d\n", cell.String(), distance, bound)
+	// fmt.Printf("\tdistance < bound [%+v]\n", distance < bound)
+	for distance <= bound {
+		// fmt.Println("Picking a new cell")
 		cell = g.randomCell()
 		distance = start.DistanceFrom(cell)
+		// fmt.Printf("%s distance is %d, bound is %d\n", cell.String(), distance, bound)
+		// fmt.Printf("\tdistance < bound [%+v]\n", distance < bound)
 	}
+	// fmt.Printf("Final %s distance is %d, bound is %d\n", cell.String(), distance, bound)
 	cell.Type = End
 	g.maze.End = cell
 }

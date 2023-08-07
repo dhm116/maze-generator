@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/dhm116/maze-generator/generator"
-	"github.com/gin-gonic/gin"
+	"github.com/kataras/iris/v12"
 )
 
 type MazeResponse struct {
@@ -16,10 +16,10 @@ type MazeResponse struct {
 	Map              [][]string `json:"map"`
 }
 
-func NewMazeResponseFromMaze(c *gin.Context, g *generator.Generator) *MazeResponse {
+func NewMazeResponseFromMaze(ctx iris.Context, g *generator.Generator) *MazeResponse {
 	maze := g.Maze()
 	encodedSeed := generator.EncodeMapSeed(g.Seed(), maze.Size)
-	seedPath := strings.Replace(c.FullPath(), "random", encodedSeed, 1)
+	seedPath := strings.Replace(ctx.GetCurrentRoute().Path(), "random", encodedSeed, 1)
 	res := &MazeResponse{
 		Name:             fmt.Sprintf("%dx%d", maze.Size, maze.Size),
 		Path:             seedPath,
